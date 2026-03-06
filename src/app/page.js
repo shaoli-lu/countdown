@@ -22,6 +22,7 @@ export default function Home() {
   const [isComplete, setIsComplete] = useState(false);
   const [mounted, setMounted] = useState(false);
   const nameRef = useRef(null);
+  const startTimeRef = useRef(new Date());
 
   // Calculate time remaining
   const calculateTimeLeft = useCallback(() => {
@@ -64,8 +65,7 @@ export default function Home() {
 
   // Calculate progress percentage
   const getProgress = useCallback(() => {
-    // Progress from when the page was created to target
-    const start = new Date("2026-03-05T00:00:00");
+    const start = startTimeRef.current;
     const target = new Date(targetDate + "T00:00:00");
     const now = new Date();
 
