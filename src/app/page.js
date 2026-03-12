@@ -4,8 +4,9 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import confetti from "canvas-confetti";
 import Image from "next/image";
 
-const DEFAULT_NAME = "Web 2.0";
+const DEFAULT_NAME = "BOL Web 2.0";
 const DEFAULT_DATE = "2026-05-18";
+const DEFAULT_START_DATE = "2023-09-25"; // first commit; 1/25/24 real commit
 
 function padZero(num, digits = 2) {
   return String(Math.floor(num)).padStart(digits, "0");
@@ -15,18 +16,37 @@ function formatWithCommas(num) {
   return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 }
 
+// Convert "YYYY-MM-DD" to a Date at midnight US Central (America/Chicago)
+function midnightCentral(dateStr) {
+  const noonUTC = new Date(dateStr + "T12:00:00Z");
+  const centralHour = parseInt(
+    new Intl.DateTimeFormat("en-US", {
+      timeZone: "America/Chicago",
+      hour: "numeric",
+      hour12: false,
+    })
+      .formatToParts(noonUTC)
+      .find((p) => p.type === "hour").value
+  );
+  // noon UTC = centralHour in Central → offset = 12 - centralHour
+  // CDT (UTC-5): centralHour=7, offset=5 → midnight Central = 05:00Z ✓
+  // CST (UTC-6): centralHour=6, offset=6 → midnight Central = 06:00Z ✓
+  const offsetHours = 12 - centralHour;
+  return new Date(dateStr + "T" + String(offsetHours).padStart(2, "0") + ":00:00Z");
+}
+
 export default function Home() {
   const [countdownName, setCountdownName] = useState(DEFAULT_NAME);
   const [targetDate, setTargetDate] = useState(DEFAULT_DATE);
+  const [startDate, setStartDate] = useState(DEFAULT_START_DATE);
   const [timeLeft, setTimeLeft] = useState(null);
   const [isComplete, setIsComplete] = useState(false);
   const [mounted, setMounted] = useState(false);
   const nameRef = useRef(null);
-  const startTimeRef = useRef(new Date());
 
   // Calculate time remaining
   const calculateTimeLeft = useCallback(() => {
-    const target = new Date(targetDate + "T00:00:00");
+    const target = midnightCentral(targetDate);
     const now = new Date();
     const diff = target.getTime() - now.getTime();
 
@@ -65,8 +85,8 @@ export default function Home() {
 
   // Calculate progress percentage
   const getProgress = useCallback(() => {
-    const start = startTimeRef.current;
-    const target = new Date(targetDate + "T00:00:00");
+    const start = midnightCentral(startDate);
+    const target = midnightCentral(targetDate);
     const now = new Date();
 
     const total = target.getTime() - start.getTime();
@@ -74,7 +94,7 @@ export default function Home() {
 
     if (total <= 0) return 100;
     return Math.min(100, Math.max(0, (elapsed / total) * 100));
-  }, [targetDate]);
+  }, [targetDate, startDate]);
 
   // Spray confetti on click
   const handleConfetti = useCallback(
@@ -219,18 +239,33 @@ export default function Home() {
         <p className="edit-hint">✏️ Click to edit name</p>
       </div>
 
-      {/* Editable Date */}
+      {/* Editable Dates */}
       <div className="date-section">
-        <span className="target-date-label">Target Date</span>
-        <div className="date-input-wrapper">
-          <input
-            type="date"
-            className="date-input"
-            value={targetDate}
-            onChange={(e) => setTargetDate(e.target.value)}
-            aria-label="Target date for countdown"
-            id="target-date-input"
-          />
+        <div className="date-field">
+          <span className="target-date-label">Start Date</span>
+          <div className="date-input-wrapper">
+            <input
+              type="date"
+              className="date-input"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+              aria-label="Start date for countdown"
+              id="start-date-input"
+            />
+          </div>
+        </div>
+        <div className="date-field">
+          <span className="target-date-label">Target Date</span>
+          <div className="date-input-wrapper">
+            <input
+              type="date"
+              className="date-input"
+              value={targetDate}
+              onChange={(e) => setTargetDate(e.target.value)}
+              aria-label="Target date for countdown"
+              id="target-date-input"
+            />
+          </div>
         </div>
       </div>
 
