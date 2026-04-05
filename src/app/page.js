@@ -16,6 +16,64 @@ function formatWithCommas(num) {
   return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 }
 
+function HelpModal({ isOpen, onClose }) {
+  if (!isOpen) return null;
+
+  return (
+    <div className="modal-overlay" onClick={(e) => { e.stopPropagation(); onClose(); }}>
+      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+        <button className="modal-close" onClick={onClose} aria-label="Close modal">
+          &times;
+        </button>
+        <h2 className="modal-title">How to Use Countdown</h2>
+        <div className="help-list">
+          <div className="help-item">
+            <span className="help-icon">✏️</span>
+            <div className="help-text">
+              <h3>Personalize Your Event</h3>
+              <p>Click on the title to change the name of your countdown. It saves instantly as you type.</p>
+            </div>
+          </div>
+          <div className="help-item">
+            <span className="help-icon">📅</span>
+            <div className="help-text">
+              <h3>Set Your Dates</h3>
+              <p>Adjust the Start and Target dates to sync the timer with your specific schedule.</p>
+            </div>
+          </div>
+          <div className="help-item">
+            <span className="help-icon">⏱️</span>
+            <div className="help-text">
+              <h3>Live Precision</h3>
+              <p>Track every moment with a high-accuracy display down to the millisecond.</p>
+            </div>
+          </div>
+          <div className="help-item">
+            <span className="help-icon">🎉</span>
+            <div className="help-text">
+              <h3>Celebrate Anywhere</h3>
+              <p>Tap or click anywhere on the background to trigger a vibrant confetti burst!</p>
+            </div>
+          </div>
+        </div>
+        <div className="modal-footer">
+          <button className="got-it-btn" onClick={(e) => { e.stopPropagation(); onClose(); }}>
+            Got it!
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function HelpTrigger({ onClick }) {
+  return (
+    <button className="help-trigger" onClick={onClick} aria-label="Open help">
+      ?
+    </button>
+  );
+}
+
 // Convert "YYYY-MM-DD" to a Date at midnight US Central (America/Chicago)
 function midnightCentral(dateStr) {
   const noonUTC = new Date(dateStr + "T12:00:00Z");
@@ -42,6 +100,7 @@ export default function Home() {
   const [timeLeft, setTimeLeft] = useState(null);
   const [isComplete, setIsComplete] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [isHelpOpen, setIsHelpOpen] = useState(false);
   const nameRef = useRef(null);
 
   // Calculate time remaining
@@ -328,6 +387,10 @@ export default function Home() {
         <span className="click-hint-icon">🎊</span>
         Click anywhere for confetti!
       </p>
+
+      {/* Help Modal */}
+      <HelpTrigger onClick={(e) => { e.stopPropagation(); setIsHelpOpen(true); }} />
+      <HelpModal isOpen={isHelpOpen} onClose={() => setIsHelpOpen(false)} />
     </div>
   );
 }
