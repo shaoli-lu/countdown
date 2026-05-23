@@ -106,6 +106,9 @@ function StopwatchTab() {
   const rafRef = useRef(null);
   const baseElapsedRef = useRef(0);
   const lapStartRef = useRef(0);
+  const swRingRef = useRef(null);
+  const RING_CIRC = 2 * Math.PI * 88;
+  const [ringOffset, setRingOffset] = useState(RING_CIRC * (1 - ((0 % 60000) / 60000)));
 
   // Sync refs with state so keydown handler can read them
   const runningRef = useRef(false);
@@ -117,6 +120,23 @@ function StopwatchTab() {
     setElapsed(newElapsed);
     rafRef.current = requestAnimationFrame(tick);
   }, []);
+
+  // Update the SVG progress circle in per-second ticks while running.
+  useEffect(() => {
+    let id = null;
+    const update = () => {
+      const now = performance.now();
+      const current = runningRef.current && startTimeRef.current ? baseElapsedRef.current + (now - startTimeRef.current) : baseElapsedRef.current;
+      const seconds = Math.floor((current % 60000) / 1000); // 0..59
+      const offset = RING_CIRC * (1 - (seconds / 60));
+      setRingOffset(offset);
+    };
+
+    // set initial offset
+    update();
+    if (runningRef.current) id = setInterval(update, 1000);
+    return () => { if (id) clearInterval(id); };
+  }, [running]);
 
   const startStop = useCallback(() => {
     if (runningRef.current) {
@@ -214,9 +234,10 @@ function StopwatchTab() {
               cx="100"
               cy="100"
               r="88"
+              ref={swRingRef}
               className="sw-ring-progress"
-              strokeDasharray={`${2 * Math.PI * 88}`}
-              strokeDashoffset={`${2 * Math.PI * 88 * (1 - ((elapsed % 60000) / 60000))}`}
+              strokeDasharray={RING_CIRC}
+              strokeDashoffset={ringOffset}
             />
           </svg>
           <div className="sw-time-inner">
