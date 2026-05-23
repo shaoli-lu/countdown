@@ -378,44 +378,83 @@ const DEFAULT_NAME = "BOL Web 2.0";
 const DEFAULT_DATE = "2026-05-18";
 const DEFAULT_START_DATE = "2023-09-25";
 
-function HelpModal({ isOpen, onClose }) {
+function HelpModal({ isOpen, onClose, activeTab }) {
   if (!isOpen) return null;
+  const isStopwatch = activeTab === "stopwatch";
+
   return (
     <div className="modal-overlay" onClick={(e) => { e.stopPropagation(); onClose(); }}>
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
         <button className="modal-close" onClick={onClose} aria-label="Close modal">
           &times;
         </button>
-        <h2 className="modal-title">How to Use Countdown</h2>
+        <h2 className="modal-title">
+          {isStopwatch ? "How to Use Stopwatch" : "How to Use Countdown"}
+        </h2>
         <div className="help-list">
-          <div className="help-item">
-            <span className="help-icon">✏️</span>
-            <div className="help-text">
-              <h3>Personalize Your Event</h3>
-              <p>Click on the title to change the name of your countdown. It saves instantly as you type.</p>
-            </div>
-          </div>
-          <div className="help-item">
-            <span className="help-icon">📅</span>
-            <div className="help-text">
-              <h3>Set Your Dates</h3>
-              <p>Adjust the Start and Target dates to sync the timer with your specific schedule.</p>
-            </div>
-          </div>
-          <div className="help-item">
-            <span className="help-icon">⏱️</span>
-            <div className="help-text">
-              <h3>Live Precision</h3>
-              <p>Track every moment with a high-accuracy display down to the millisecond.</p>
-            </div>
-          </div>
-          <div className="help-item">
-            <span className="help-icon">🎉</span>
-            <div className="help-text">
-              <h3>Celebrate Anywhere</h3>
-              <p>Tap or click anywhere on the background to trigger a vibrant confetti burst!</p>
-            </div>
-          </div>
+          {isStopwatch ? (
+            <>
+              <div className="help-item">
+                <span className="help-icon">⏱️</span>
+                <div className="help-text">
+                  <h3>Start and Stop</h3>
+                  <p>Press Start button or Space on keyboard to start or pause the stopwatch at any time.</p>
+                </div>
+              </div>
+              <div className="help-item">
+                <span className="help-icon">🏁</span>
+                <div className="help-text">
+                  <h3>Record Laps</h3>
+                  <p>Press L to capture a lap split while the stopwatch is running.</p>
+                </div>
+              </div>
+              <div className="help-item">
+                <span className="help-icon">🔁</span>
+                <div className="help-text">
+                  <h3>Reset</h3>
+                  <p>Press R to reset the stopwatch and clear all lap data.</p>
+                </div>
+              </div>
+              <div className="help-item">
+                <span className="help-icon">📊</span>
+                <div className="help-text">
+                  <h3>Lap Stats</h3>
+                  <p>Get instant best, average, and worst lap times when you record two or more laps.</p>
+                </div>
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="help-item">
+                <span className="help-icon">✏️</span>
+                <div className="help-text">
+                  <h3>Personalize Your Event</h3>
+                  <p>Click on the title to change the name of your countdown. It saves instantly as you type.</p>
+                </div>
+              </div>
+              <div className="help-item">
+                <span className="help-icon">📅</span>
+                <div className="help-text">
+                  <h3>Set Your Dates</h3>
+                  <p>Adjust the Start and Target dates to sync the timer with your specific schedule.</p>
+                </div>
+              </div>
+              <div className="help-item">
+                <span className="help-icon">⏱️</span>
+                <div className="help-text">
+                  <h3>Live Precision</h3>
+                  <p>Track every moment with a high-accuracy display down to the millisecond.</p>
+                </div>
+              </div>
+              <div className="help-item">
+                <span className="help-icon">🎉</span>
+                <div className="help-text">
+                  <h3>Celebration Mode</h3>
+                  <p>Tap or click anywhere on the background to trigger a vibrant confetti burst.</p>
+                </div>
+              </div>
+            </>
+          )}
         </div>
         <div className="modal-footer">
           <button className="got-it-btn" onClick={(e) => { e.stopPropagation(); onClose(); }}>
@@ -427,14 +466,13 @@ function HelpModal({ isOpen, onClose }) {
   );
 }
 
-function CountdownTab() {
+function CountdownTab({ onHelpOpen }) {
   const [countdownName, setCountdownName] = useState(DEFAULT_NAME);
   const [targetDate, setTargetDate] = useState(DEFAULT_DATE);
   const [startDate, setStartDate] = useState(DEFAULT_START_DATE);
   const [timeLeft, setTimeLeft] = useState(null);
   const [isComplete, setIsComplete] = useState(false);
   const [mounted, setMounted] = useState(false);
-  const [isHelpOpen, setIsHelpOpen] = useState(false);
   const nameRef = useRef(null);
 
   const calculateTimeLeft = useCallback(() => {
@@ -599,8 +637,7 @@ function CountdownTab() {
       </p>
 
       {/* Help */}
-      <button className="help-trigger" onClick={(e) => { e.stopPropagation(); setIsHelpOpen(true); }} aria-label="Open help">?</button>
-      <HelpModal isOpen={isHelpOpen} onClose={() => setIsHelpOpen(false)} />
+      <button className="help-trigger" onClick={(e) => { e.stopPropagation(); onHelpOpen(true); }} aria-label="Open help">?</button>
     </div>
   );
 }
@@ -609,6 +646,7 @@ function CountdownTab() {
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState("stopwatch");
+  const [isHelpOpen, setIsHelpOpen] = useState(false);
 
   return (
     <div className="main-container">
@@ -617,12 +655,19 @@ export default function Home() {
       {/* Tab bar */}
       <div className="tab-wrapper">
         <TabBar activeTab={activeTab} onTabChange={setActiveTab} />
+        {activeTab === "stopwatch" && (
+          <button className="help-trigger help-trigger-root" onClick={() => setIsHelpOpen(true)} aria-label="Open help">
+            ?
+          </button>
+        )}
       </div>
 
       {/* Tab content */}
       <div className="tab-panel">
-        {activeTab === "stopwatch" ? <StopwatchTab /> : <CountdownTab />}
+        {activeTab === "stopwatch" ? <StopwatchTab /> : <CountdownTab onHelpOpen={() => setIsHelpOpen(true)} />}
       </div>
+
+      <HelpModal isOpen={isHelpOpen} onClose={() => setIsHelpOpen(false)} activeTab={activeTab} />
     </div>
   );
 }
