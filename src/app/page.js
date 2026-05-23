@@ -3,16 +3,9 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import confetti from "canvas-confetti";
 import Image from "next/image";
+import { padZero, formatWithCommas, formatStopwatchTime } from "../lib/time";
 
 // ─── Shared Utilities ────────────────────────────────────────────────────────
-
-function padZero(num, digits = 2) {
-  return String(Math.floor(num)).padStart(digits, "0");
-}
-
-function formatWithCommas(num) {
-  return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-}
 
 // Convert "YYYY-MM-DD" to a Date at midnight US Central (America/Chicago)
 function midnightCentral(dateStr) {
@@ -28,29 +21,6 @@ function midnightCentral(dateStr) {
   );
   const offsetHours = 12 - centralHour;
   return new Date(dateStr + "T" + String(offsetHours).padStart(2, "0") + ":00:00Z");
-}
-
-// Format milliseconds → "MM:SS.ms" or "HH:MM:SS.ms"
-function formatStopwatchTime(ms, showHours = false) {
-  const h = Math.floor(ms / 3600000);
-  const m = Math.floor((ms % 3600000) / 60000);
-  const s = Math.floor((ms % 60000) / 1000);
-  const centiseconds = Math.floor((ms % 1000) / 10);
-
-  if (showHours || h > 0) {
-    return {
-      h: padZero(h),
-      m: padZero(m),
-      s: padZero(s),
-      cs: padZero(centiseconds),
-    };
-  }
-  return {
-    h: null,
-    m: padZero(m),
-    s: padZero(s),
-    cs: padZero(centiseconds),
-  };
 }
 
 // ─── Background ──────────────────────────────────────────────────────────────
